@@ -46,7 +46,7 @@
         {
             "label": "build_BDmodel",
             "type": "shell",
-            "command": "g++ ./CppFiles/BDSimulations.cpp ./CppFiles/random.h ./CppFiles/random.cpp ./CppFiles/utils.h ./CppFiles/utils.cpp -o ./CppFiles/lib/BDmodel",
+            "command": "g++ ./Models/BD_Simulations/BDSimulations.cpp ./Models/BD_Simulations/random.h ./Models/BD_Simulations/random.cpp ./Models/BD_Simulations/utils.h ./Models/BD_Simulations/utils.cpp -o ./Models/BD_Simulations/lib/BDmodel",
             "group": {
                 "kind": "build",
                 "isDefault": true
