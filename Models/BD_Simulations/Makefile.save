@@ -1,0 +1,10 @@
+CC = gcc
+CFLAGS = -Wall -g -O2 e
+DEPS = random.h utils.h
+OBJ = BDSimulations.o random.o utils.o
+
+%.o: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+go: $(OBJ)
+	gcc $(CFLAGS) -o $@ $^

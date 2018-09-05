@@ -36,7 +36,7 @@
         {
             "label": "build_Rpackage",
             "type": "shell",
-            "command": "./RPackage/BuildRPackage.sh",
+            "command": "/home/freek/Documents/GeneticRescue/Rpackage/BuildRPackage.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -5,7 +5,7 @@
  Simulations of genetic rescue
 
  C++-code accompanying:
-		 
+
 		(ms. in prep).
 
  Written by:
