@@ -9,7 +9,7 @@
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
-#include "IntrogressionSimulations.h"
+#include "IBSSimulations.h"
 #include "Rcpp_output.h"
 #include "random.h"
 
@@ -124,6 +124,7 @@ Rcpp::List Rcpp_WriteOutput(const Parameters &GlobalPars, SimData &SimulationDat
         delete SimulationData.DataSet[i];
     }
     SimulationData.DataSet.clear();
+    SimulationData.nofixcounter = 0;
 
     return Rcpp::List::create(
         Rcpp::_["pars"] = (parsdata),
@@ -136,11 +137,11 @@ Rcpp::List Rcpp_WriteOutput(const Parameters &GlobalPars, SimData &SimulationDat
 }
 
 // [[Rcpp::export]]
-Rcpp::List RcppIntrogressionSimulation(Rcpp::List parslist, int setthreads = 0, bool progressbar = false){
+Rcpp::List IBSSim(const int &generations, Rcpp::List parslist, int setthreads = 0, bool progressbar = true){
     
     // Prepare for simulation
     rnd::set_seed();
-    const Parameters GlobalPars(parslist);
+    const Parameters GlobalPars(generations, parslist);
     SimData SimulationData;
 
     // Run nrep successful simulations
@@ -150,12 +151,11 @@ Rcpp::List RcppIntrogressionSimulation(Rcpp::List parslist, int setthreads = 0, 
         else omp_set_num_threads(maxthreads);
         REprintf("Parallel activated : Number of threads=%i\n",omp_get_max_threads());   
     #endif
-    //if(progressbar == true) Progress p(GlobalPars.NREP, true);
-
+    Progress p(GlobalPars.NREP, progressbar);
     #pragma omp parallel for schedule(static)
     for (int task = 0; task < GlobalPars.NREP; ++task){
         while(RunSimulation(GlobalPars, SimulationData)==false);
-        //if(progressbar == true) p.increment();
+        p.increment();
     }
 
     return Rcpp_WriteOutput(GlobalPars, SimulationData);

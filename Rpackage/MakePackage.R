@@ -2,10 +2,10 @@ library(Rcpp)
 
 Rcpp.package.skeleton(
     name = "pkgIntrogression", 
-    code_files = c("Rscripts/ShinyExport.R"), 
+    code_files = c("Rscripts/ShinyExport.R", "Rscripts/TestPars.R"), 
     cpp_files = c(
-    "./../Models/IBS_Simulations/IntrogressionSimulations.cpp",
-    "./../Models/IBS_Simulations/IntrogressionSimulations.h",
+    "./../Models/IBS_Simulations/IBSSimulations.cpp",
+    "./../Models/IBS_Simulations/IBSSimulations.h",
     "./../Models/IBS_Simulations/Rcpp_output.cpp",
     "./../Models/IBS_Simulations/Rcpp_output.h",
     "./../Models/IBS_Simulations/Shiny_output.cpp", 
@@ -13,6 +13,7 @@ Rcpp.package.skeleton(
     "./../Models/IBS_Simulations/random.cpp", 
     "./../Models/IBS_Simulations/utils.h", 
     "./../Models/IBS_Simulations/utils.cpp",
+    "./../Models/BD_Simulations/BDSimulations.cpp",
     "./../Models/IBS_Simulations/Makevars"),
     example_code = FALSE,
     author = "F.J.H. de Haas",

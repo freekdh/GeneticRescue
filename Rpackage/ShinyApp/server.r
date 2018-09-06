@@ -26,16 +26,16 @@ plot_intro <- function(data) {
 }
 
 RunAllSimulation <- function(pars){
-  pkgIntrogression::ShinyInitializeSimulation(pars)
+  pkgIntrogression::ShinyIBS_init(pars)
   
   withProgress(message="Running simulations",value = 0,{
     for(x in c(1:pars$nrep)){
       incProgress(1/pars$nrep, detail = paste("Doing replicate", x))
-      pkgIntrogression::ShinyRunSimulation()
+      pkgIntrogression::ShinyIBS_run()
     }
   })
 
-  pkgIntrogression::ShinyWriteOutputandCleanup()
+  pkgIntrogression::ShinyIBS_write()
 }
 
 function(input, output, session) {

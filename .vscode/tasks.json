@@ -16,7 +16,7 @@
         {
             "label": "build_RCPP",
             "type": "shell",
-            "command": "g++ -shared -fPIC -L/usr/lib/R/lib -Wl,-z,relro -fopenmp -O3 -std=c++11 -I /usr/local/include/boost_1_67_0/ -I /usr/local/lib/R/site-library/Rcpp/include/ -I /usr/share/R/include/ -I /usr/local/lib/R/site-library/RcppProgress/include/ -g ./CppFiles/IntrogressionSimulations.cpp ./CppFiles/IntrogressionSimulations.h ./CppFiles/Rcpp_output.cpp ./CppFiles/random.cpp ./CppFiles/random.h ./CppFiles/utils.cpp ./CppFiles/utils.h -o ./CppFiles/lib/IBS_RCPP.dll -llapack -lblas -lgfortran -lm -lquadmath -L/usr/lib/R/lib -lR",
+            "command": "g++  -I/usr/share/R/include -DNDEBUG -I/usr/local/lib/R/site-library/Rcpp/include -I/usr/local/lib/R/site-library/BH/include -I/usr/local/lib/R/site-library/RcppProgress/include  -I../inst/include -I. -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-3.3.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g -c ./Models/IBS_Simulations/IBSSimulations.cpp ./Models/IBS_Simulations/IBSSimulations.h ./Models/IBS_Simulations/Rcpp_output.cpp ./Models/IBS_Simulations/random.cpp ./Models/IBS_Simulations/random.h ./Models/IBS_Simulations/utils.cpp ./Models/IBS_Simulations/utils.h -o ./Models/IBS_Simulations/lib/IBS_RCPP",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -46,7 +46,7 @@
         {
             "label": "build_BDmodel",
             "type": "shell",
-            "command": "make -C ./Models/BD_Simulations/",
+            "command": "g++  -I/usr/share/R/include -DNDEBUG   -I/usr/local/lib/R/site-library/Rcpp/include -I/usr/local/lib/R/site-library/BH/include -I/usr/local/lib/R/site-library/RcppProgress/include  -I../inst/include -I. -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-3.3.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g -c ./Models/BD_Simulations/BDSimulations.cpp -o ./Models/BD_Simulations/lib/BDSimulations.o",
             "group": {
                 "kind": "build",
                 "isDefault": true

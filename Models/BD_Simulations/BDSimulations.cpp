@@ -1,5 +1,5 @@
 /*=============================================================================================================
-                                                IntrogressionSimulations.cpp
+                                                BDSimulations.cpp
 ===============================================================================================================
 
  Simulations of genetic rescue
@@ -26,13 +26,24 @@
 #include <iostream>
 #include "random.h"
 #include "utils.h"
+#include <progress.hpp>
+#include <mutex>
 #include <Rcpp.h>
+#include <atomic>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
 
 enum typenames {AB,Ab,aB,ab};
-enum distribution {birth_AB,birth_Ab,birth_aB,birth_ab,death_AB,death_Ab,death_aB,death_ab};        
+using namespace boost::accumulators;
 
 struct Parameters{
-    Parameters(int in_AB0, int in_Ab0, int in_aB0, int in_ab0, double in_bA,double in_ba, double in_dA, double in_da, double in_r){
+    Parameters(const int &in_AB0, const int &in_Ab0,const int &in_aB0, const int &in_ab0, const double &in_bA, const double &in_ba, double const& in_dA, double const& in_da, double const&in_r){
         AB0 = in_AB0;
         Ab0 = in_Ab0;
         aB0 = in_aB0;
@@ -55,6 +66,7 @@ struct Parameters{
         da = parslist["da"];
         r = parslist["r"];
     }
+
     int AB0,Ab0,aB0,ab0;
     double bA,ba,dA,da;
     double r;
@@ -63,16 +75,22 @@ struct Parameters{
 class BDPopulation{
     public:
     BDPopulation(const Parameters &pars) {
-        type[AB] = pars.AB0;
-        type[Ab] = pars.Ab0;
-        type[aB] = pars.aB0;
-        type[ab] = pars.ab0; 
+        type[AB].push_back(pars.AB0);
+        type[Ab].push_back(pars.Ab0);
+        type[aB].push_back(pars.aB0);
+        type[ab].push_back(pars.ab0); 
     }
     bool Iterate(const Parameters &pars){
+        /*parents become offspring*/
+        type[AB].push_back(type[AB].back());
+        type[Ab].push_back(type[Ab].back());
+        type[aB].push_back(type[aB].back());
+        type[ab].push_back(type[ab].back());
+        /*offspring changes*/ 
         static double f[4];
         assert(pars.da>=0.0);
         assert(pars.dA>=0.0);
-        if(CalculateFrequencies(f)==false) {return false;};
+        if(CalculateFrequencies(f)==false) {extinct = true; return false;};
         const double sumdeathrate = (f[AB]+f[Ab])*pars.dA+(f[aB]+f[ab])*pars.da;
         const double sumbirthrate = (f[AB]+f[Ab])*pars.bA+(f[aB]+f[ab])*pars.ba;
         const double Pdeath = sumdeathrate/(sumbirthrate+sumdeathrate);
@@ -100,50 +118,101 @@ class BDPopulation{
 
         const int sample = birthdeathevent.sample();
         switch(sample) {
-            case birth_AB:      ++type[AB]; break;
-            case birth_Ab:      ++type[Ab]; break;
-            case birth_aB:      ++type[aB]; break;
-            case birth_ab:      ++type[ab]; break;
-            case death_AB:      --type[AB]; break;
-            case death_Ab:      --type[Ab]; break;
-            case death_aB:      --type[aB]; break;
-            case death_ab:      --type[ab]; break;
+            case birth_AB:      ++type[AB].back(); break;
+            case birth_Ab:      ++type[Ab].back(); break;
+            case birth_aB:      ++type[aB].back(); break;
+            case birth_ab:      ++type[ab].back(); break;
+            case death_AB:      --type[AB].back(); break;
+            case death_Ab:      --type[Ab].back(); break;
+            case death_aB:      --type[aB].back(); break;
+            case death_ab:      --type[ab].back(); break;
         }
         return true;
     }
-    inline int returnTypes(int typenr){
-        return type[typenr];
+    inline int returnTypes(int index){
+        return type[index].back();
     }
+    bool getextinction(){return extinct;}
 
     private:
-    int type[4];
+    bool extinct = false;
+    enum distribution {birth_AB,birth_Ab,birth_aB,birth_ab,death_AB,death_Ab,death_aB,death_ab};        
+    std::vector<int> type[4];
     bool CalculateFrequencies(double *f){
-        const double sum=(double)(type[AB]+type[Ab]+type[aB]+type[ab]);
+        const double sum=(double)(type[AB].back()+type[Ab].back()+type[aB].back()+type[ab].back());
         if(sum<=0){return false;}
-        f[AB] = (double)type[AB]/sum;
-        f[Ab] = (double)type[Ab]/sum;
-        f[aB] = (double)type[aB]/sum;
-        f[ab] = (double)type[ab]/sum;
+        f[AB] = (double)type[AB].back()/sum;
+        f[Ab] = (double)type[Ab].back()/sum;
+        f[aB] = (double)type[aB].back()/sum;
+        f[ab] = (double)type[ab].back()/sum;
         return true;
     }
 };
 
+struct RcppOutput{
+    RcppOutput(const unsigned int &ngen){nofixcounter = 0;};
+    void pushback_protect(BDPopulation* pop){
+        if(pop->getextinction()){
+            ++nofixcounter;
+        }
+        else{
+            mu_acc.lock();
+            ABvec(pop->returnTypes(AB));
+            Abvec(pop->returnTypes(Ab));
+            aBvec(pop->returnTypes(aB));
+            abvec(pop->returnTypes(ab));
+            mu_acc.unlock();
+        }
+    };
+
+    Rcpp::List pushout(){
+        return Rcpp::List::create(
+            Rcpp::_["AB"] = mean(ABvec),
+            Rcpp::_["Ab"] = mean(Abvec),
+            Rcpp::_["aB"] = mean(aBvec),
+            Rcpp::_["ab"] = mean(abvec),
+            Rcpp::_["extinct"] = static_cast<int>(nofixcounter)
+    );
+    }
+
+    private:
+    std::mutex mu_acc;
+    std::atomic<int> nofixcounter;
+    accumulator_set<int, stats<tag::mean, tag::variance > > ABvec, Abvec, aBvec, abvec;
+};
+
 // [[Rcpp::export]]
-Rcpp::List BDSim(int tend, Rcpp::List parslist){
+Rcpp::List BDSim(const int &nrep, const int &tend, Rcpp::List parslist, int setthreads = 0, bool progressbar = true){
     rnd::set_seed();
     Parameters pars(parslist);
+    #ifdef _OPENMP
+        const static int maxthreads = omp_get_max_threads();
+        if(setthreads>0) omp_set_num_threads(setthreads);
+        else omp_set_num_threads(maxthreads);
+        REprintf("Parallel activated : Number of threads=%i\n",omp_get_max_threads());   
+    #endif
+    Progress p(nrep, progressbar);
 
-    BDPopulation population(pars);
+    /*collect data */    
+    RcppOutput OUTPUT(tend);
+    BDPopulation* arrayPopulation[nrep];
 
-    int i = 0;
-    while(population.Iterate(pars)==true && i!= tend){
-        ++i;
+    #pragma omp parallel for
+    for(int j = 0; j < nrep; ++j){
+        /* run simulations in parallel*/
+        /*#pragma omp task*/
+        {
+            arrayPopulation[j] = new BDPopulation(pars);
+            for(int i = 0; i < tend; ++i){arrayPopulation[j]->Iterate(pars);}
+        }
+        /*#pragma omp taskwait*/
+        /*#pragma omp task*/
+        {
+            OUTPUT.pushback_protect(arrayPopulation[j]);
+            delete arrayPopulation[j];
+            p.increment();
+        }
     }
     
-    return Rcpp::List::create(
-        Rcpp::_["AB"] = population.returnTypes(0),
-        Rcpp::_["Ab"] = population.returnTypes(1),
-        Rcpp::_["aB"] = population.returnTypes(2),
-        Rcpp::_["ab"] = population.returnTypes(3)
-    );
+    return OUTPUT.pushout();
 }

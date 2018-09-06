@@ -6,7 +6,7 @@
 #ifndef SHINYFUNCTION_H
 #define SHINYFUNCTION_H
 
-#include "IntrogressionSimulations.h"
+#include "IBSSimulations.h"
 #include "Rcpp_output.h"
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
@@ -18,24 +18,22 @@
 #endif
 
 static bool RUNSIMULATION_FUN = false, INITIALIZESIMULATION_FUN = false;
-Parameters Shiny_Pars;
-SimData Shiny_Data; 
+static Parameters Shiny_Pars;
+static SimData Shiny_Data; 
 
 // [[Rcpp::export]]
-void ShinyInitializeSimulation(const Rcpp::List &parslist){
+void ShinyIBS_init(const int &generations, const Rcpp::List &parslist){
     if(RUNSIMULATION_FUN == true) {std::cerr << "First write output or clear dataset : WriteOutputandCleanupt()" << std::endl;}
     else{
         // Prepare for simulations
-        Parameters newpars(parslist);
-        Shiny_Pars = newpars;
+        Parameters Shiny_Pars(generations,parslist);
         INITIALIZESIMULATION_FUN = true;
-    } 
+    }
 }
 
 // [[Rcpp::export]]
-void ShinyRunSimulation(){
+void ShinyIBS_run(){
     if(INITIALIZESIMULATION_FUN == true){
-        // Run nrep successful simulations
         while(RunSimulation(Shiny_Pars, Shiny_Data)==false);        
         RUNSIMULATION_FUN = true;
     }
@@ -43,7 +41,7 @@ void ShinyRunSimulation(){
 }
 
 // [[Rcpp::export]]
-Rcpp::List ShinyWriteOutputandCleanup(){
+Rcpp::List ShinyIBS_write(){
     if(INITIALIZESIMULATION_FUN == true && RUNSIMULATION_FUN == true){
         return Rcpp_WriteOutput(Shiny_Pars,Shiny_Data);
     }
