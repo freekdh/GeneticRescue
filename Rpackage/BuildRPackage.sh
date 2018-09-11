@@ -1,3 +1,6 @@
+#!/bin/bash
+cd "${0%/*}"
+
 rm -rf pkgIntrogression
 R CMD BATCH --vanilla --no-timing MakePackage.R /dev/null
 

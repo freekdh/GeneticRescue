@@ -115,7 +115,7 @@ class BDPopulation{
         birthdeathevent[death_Ab] = Pdeath * PAb_death;
         birthdeathevent[death_aB] = Pdeath * PaB_death;
         birthdeathevent[death_ab] = Pdeath * Pab_death;
-
+        
         const int sample = birthdeathevent.sample();
         switch(sample) {
             case birth_AB:      ++type[AB].back(); break;
@@ -129,10 +129,21 @@ class BDPopulation{
         }
         return true;
     }
-    inline int returnTypes(int index){
-        return type[index].back();
+    inline int returnTypes(const int &index, const int &gen){
+        return type[index][gen];
     }
-    bool getextinction(){return extinct;}
+    inline bool getextinction(const int &gen){
+        return (type[AB][gen]+type[Ab][gen])!=0 ? false : true;
+    }
+    inline double getFA(const int &gen){
+        //assert(type[AB][gen]+type[Ab][gen] != 0);
+        return (double)type[AB][gen] / (double)(type[AB][gen]+type[Ab][gen]);
+    }
+
+    inline double getFa(const int &gen){
+        //assert(type[aB][gen]+type[aB][gen] != 0);
+        return (double)type[aB][gen] / (double)(type[aB][gen]+type[ab][gen]);
+    }
 
     private:
     bool extinct = false;
@@ -150,35 +161,95 @@ class BDPopulation{
 };
 
 struct RcppOutput{
-    RcppOutput(const unsigned int &ngen){nofixcounter = 0;};
+    RcppOutput(const unsigned int &ngen) : ngennr(ngen) {
+        nofixcounter = 0;
+        type[AB].resize(ngen);
+        type[Ab].resize(ngen);
+        type[aB].resize(ngen);
+        type[ab].resize(ngen);
+        FA.resize(ngen);
+        Fa.resize(ngen);
+    };
     void pushback_protect(BDPopulation* pop){
-        if(pop->getextinction()){
+        if(pop->getextinction(ngennr)){
             ++nofixcounter;
         }
         else{
+            ++fixcounter;
             mu_acc.lock();
-            ABvec(pop->returnTypes(AB));
-            Abvec(pop->returnTypes(Ab));
-            aBvec(pop->returnTypes(aB));
-            abvec(pop->returnTypes(ab));
+            for(int t = 0; t < ngennr; ++t){
+                type[AB][t](pop->returnTypes(AB,t));
+                type[Ab][t](pop->returnTypes(Ab,t));
+                type[aB][t](pop->returnTypes(aB,t));
+                type[ab][t](pop->returnTypes(ab,t));
+                FA[t](pop->getFA(t));
+                if(pop->getFa(t) >= 0.0){
+                    Fa[t](pop->getFa(t));
+                }
+            }
             mu_acc.unlock();
         }
     };
-
     Rcpp::List pushout(){
+        /* make a Rcpp Vector for first 4 entries of the Rlist. */
+        Rcpp::NumericVector RcppAB(ngennr);    
+        Rcpp::NumericVector RcppAb(ngennr);    
+        Rcpp::NumericVector RcppaB(ngennr);    
+        Rcpp::NumericVector Rcppab(ngennr);    
+        Rcpp::NumericVector RcppFA(ngennr);
+        Rcpp::NumericVector RcppFa(ngennr);
+        Rcpp::NumericVector RcppAB_var(ngennr);    
+        Rcpp::NumericVector RcppAb_var(ngennr);    
+        Rcpp::NumericVector RcppaB_var(ngennr);    
+        Rcpp::NumericVector Rcppab_var(ngennr);    
+        Rcpp::NumericVector RcppFA_var(ngennr);
+        Rcpp::NumericVector RcppFa_var(ngennr);
+        Rcpp::NumericVector Time(ngennr);
+
+        for(int t = 0; t < ngennr; ++t){
+            RcppAB[t] = mean(type[AB][t]);
+            RcppAb[t] = mean(type[Ab][t]);
+            RcppaB[t] = mean(type[aB][t]);
+            Rcppab[t] = mean(type[ab][t]);
+            RcppFA[t] = mean(FA[t]);
+            RcppFa[t] = mean(Fa[t]);
+
+            RcppAB_var[t] = variance(type[AB][t]);
+            RcppAb_var[t] = variance(type[Ab][t]);
+            RcppaB_var[t] = variance(type[aB][t]);
+            Rcppab_var[t] = variance(type[ab][t]);
+            RcppFA_var[t] = variance(FA[t]);
+            RcppFa_var[t] = variance(Fa[t]);
+
+            Time[t] = t;
+        }   
+
         return Rcpp::List::create(
-            Rcpp::_["AB"] = mean(ABvec),
-            Rcpp::_["Ab"] = mean(Abvec),
-            Rcpp::_["aB"] = mean(aBvec),
-            Rcpp::_["ab"] = mean(abvec),
-            Rcpp::_["extinct"] = static_cast<int>(nofixcounter)
-    );
+            Rcpp::_["t"] = Time,
+            Rcpp::_["AB_mean"] = RcppAB,
+            Rcpp::_["Ab_mean"] = RcppAb,
+            Rcpp::_["aB_mean"] = RcppaB,
+            Rcpp::_["ab_mean"] = Rcppab,
+            Rcpp::_["FA_mean"] = RcppFA,
+            Rcpp::_["Fa_mean"] = RcppFa,
+
+            Rcpp::_["AB_var"] = RcppAB_var,
+            Rcpp::_["Ab_var"] = RcppAb_var,
+            Rcpp::_["aB_var"] = RcppaB_var,
+            Rcpp::_["ab_var"] = Rcppab_var,
+            Rcpp::_["FA_var"] = RcppFA_var,
+            Rcpp::_["Fa_var"] = RcppFa_var,
+
+            Rcpp::_["extinct"] = static_cast<double>(nofixcounter) / (static_cast<double>(nofixcounter)+static_cast<double>(fixcounter))
+        );
     }
 
     private:
+    const int ngennr;
     std::mutex mu_acc;
-    std::atomic<int> nofixcounter;
-    accumulator_set<int, stats<tag::mean, tag::variance > > ABvec, Abvec, aBvec, abvec;
+    std::atomic<int> nofixcounter, fixcounter;
+    std::vector<accumulator_set<int, stats<tag::mean, tag::variance > > > type[4];
+    std::vector<accumulator_set<double, stats<tag::mean, tag::variance > > > FA,Fa; // Genetic rescue AB/(AB+Ab) & aB/(aB+ab) (a will go extinct)
 };
 
 // [[Rcpp::export]]
@@ -197,22 +268,16 @@ Rcpp::List BDSim(const int &nrep, const int &tend, Rcpp::List parslist, int sett
     RcppOutput OUTPUT(tend);
     BDPopulation* arrayPopulation[nrep];
 
-    #pragma omp parallel for
+    #pragma omp parallel for /* threadprivate(OUTPUT)*/
     for(int j = 0; j < nrep; ++j){
         /* run simulations in parallel*/
-        /*#pragma omp task*/
-        {
-            arrayPopulation[j] = new BDPopulation(pars);
-            for(int i = 0; i < tend; ++i){arrayPopulation[j]->Iterate(pars);}
-        }
-        /*#pragma omp taskwait*/
-        /*#pragma omp task*/
-        {
-            OUTPUT.pushback_protect(arrayPopulation[j]);
-            delete arrayPopulation[j];
-            p.increment();
-        }
+        arrayPopulation[j] = new BDPopulation(pars);
+        for(int i = 0; i < tend; ++i){arrayPopulation[j]->Iterate(pars);}
+        OUTPUT.pushback_protect(arrayPopulation[j]);
+        delete arrayPopulation[j];
+        p.increment();
     }
-    
+
+    /*rservoire*/
     return OUTPUT.pushout();
 }

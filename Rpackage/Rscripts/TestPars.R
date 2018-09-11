@@ -6,8 +6,8 @@ BDtestpars <- function() {
     ab0 = 0,
     bA = 1.1,
     ba = 1.1,
-    dA = 1.0,
-    da = 0.8,
+    dA = 1.05,
+    da = 1.15,
     r = 0.5
     )
 }
