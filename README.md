@@ -1,6 +1,9 @@
 # Introgressive Hybridization
 
-Populations exposed to extreme climate change can become maladapted to the new environment leading to (exponential) population decay, inevitably leading to their extinction. Introgressive hybridization (IH) opens up the possibility to rescue a maladapted population by introducing new (and adapted) genetic variants. However, introgression can simultaneously swamp the population's unique characteristics. We explore, using various mathematical techniques, the scenario where a wildtype population has undergone a severe environmental change affecting the fitness of a single locus. A given number of rescue types are introduced and will 'deterministically' rescue the wildtype population. We try to answer the question: "What happens to the genetic purety of the wildtype population as it's being rescued by introgression?"
+Populations exposed to extreme climatic change can become maladapted to their environment which, without evolution, inevitably leads to their extinction. Introgressive hybridization (IH) opens up the possibility to rescue a maladapted population by introducing new (and adapted) genetic variants. However, introgression can simultaneously swamp the population's unique characteristics. We explore, using various mathematical techniques, the scenario where a wildtype population has undergone a severe environmental change affecting individaul fitness underlaying a single locus. A given number of rescue types are introduced and will 'deterministically' rescue the wildtype population. We try to answer the question: 
+
+* What is the probability of rescue
+* What happens to the genetic purety of the wildtype population as it's being rescued by introgression?
 
 ## Getting Started
 
