@@ -52,6 +52,16 @@
                 "isDefault": true
             },
             "problemMatcher": []
-        }        
+        },
+        {
+            "label": "Build_IBSmodel",
+            "type": "shell",
+            "command": "g++  -I/usr/share/R/include -DNDEBUG   -I/usr/local/lib/R/site-library/Rcpp/include -I/usr/local/lib/R/site-library/BH/include -I/usr/local/lib/R/site-library/RcppProgress/include  -I../inst/include -I. -fopenmp  -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-3.3.3=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g -c ./Models/IBS_Simulations/IBSSimulations.cpp -o ./Models/IBS_Simulations/lib/IBSSimulations.o",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }    
     ]
 }

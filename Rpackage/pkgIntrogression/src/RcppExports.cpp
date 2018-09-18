@@ -6,71 +6,23 @@
 using namespace Rcpp;
 
 // BDSim
-Rcpp::List BDSim(const int& nrep, const int& tend, Rcpp::List parslist, int setthreads, bool progressbar);
+Rcpp::List BDSim(const int& nrep, const int& tend, const Rcpp::List& parslist, int setthreads, bool progressbar);
 RcppExport SEXP _pkgIntrogression_BDSim(SEXP nrepSEXP, SEXP tendSEXP, SEXP parslistSEXP, SEXP setthreadsSEXP, SEXP progressbarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int& >::type nrep(nrepSEXP);
     Rcpp::traits::input_parameter< const int& >::type tend(tendSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type parslist(parslistSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type parslist(parslistSEXP);
     Rcpp::traits::input_parameter< int >::type setthreads(setthreadsSEXP);
     Rcpp::traits::input_parameter< bool >::type progressbar(progressbarSEXP);
     rcpp_result_gen = Rcpp::wrap(BDSim(nrep, tend, parslist, setthreads, progressbar));
     return rcpp_result_gen;
 END_RCPP
 }
-// IBSSim
-Rcpp::List IBSSim(const int& generations, Rcpp::List parslist, int setthreads, bool progressbar);
-RcppExport SEXP _pkgIntrogression_IBSSim(SEXP generationsSEXP, SEXP parslistSEXP, SEXP setthreadsSEXP, SEXP progressbarSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const int& >::type generations(generationsSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type parslist(parslistSEXP);
-    Rcpp::traits::input_parameter< int >::type setthreads(setthreadsSEXP);
-    Rcpp::traits::input_parameter< bool >::type progressbar(progressbarSEXP);
-    rcpp_result_gen = Rcpp::wrap(IBSSim(generations, parslist, setthreads, progressbar));
-    return rcpp_result_gen;
-END_RCPP
-}
-// ShinyIBS_init
-void ShinyIBS_init(const int& generations, const Rcpp::List& parslist);
-RcppExport SEXP _pkgIntrogression_ShinyIBS_init(SEXP generationsSEXP, SEXP parslistSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const int& >::type generations(generationsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type parslist(parslistSEXP);
-    ShinyIBS_init(generations, parslist);
-    return R_NilValue;
-END_RCPP
-}
-// ShinyIBS_run
-void ShinyIBS_run();
-RcppExport SEXP _pkgIntrogression_ShinyIBS_run() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    ShinyIBS_run();
-    return R_NilValue;
-END_RCPP
-}
-// ShinyIBS_write
-Rcpp::List ShinyIBS_write();
-RcppExport SEXP _pkgIntrogression_ShinyIBS_write() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(ShinyIBS_write());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_pkgIntrogression_BDSim", (DL_FUNC) &_pkgIntrogression_BDSim, 5},
-    {"_pkgIntrogression_IBSSim", (DL_FUNC) &_pkgIntrogression_IBSSim, 4},
-    {"_pkgIntrogression_ShinyIBS_init", (DL_FUNC) &_pkgIntrogression_ShinyIBS_init, 2},
-    {"_pkgIntrogression_ShinyIBS_run", (DL_FUNC) &_pkgIntrogression_ShinyIBS_run, 0},
-    {"_pkgIntrogression_ShinyIBS_write", (DL_FUNC) &_pkgIntrogression_ShinyIBS_write, 0},
     {NULL, NULL, 0}
 };
 

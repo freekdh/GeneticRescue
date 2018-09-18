@@ -1,9 +1,9 @@
-BDtestpars <- function() {
+BDtestpars <- function(AB = 0, Ab = 1, aB = 10, ab = 0) {
     list(
-    AB0 = 0,
-    Ab0 = 2,
-    aB0 = 20,
-    ab0 = 0,
+    AB0 = AB,
+    Ab0 = Ab,
+    aB0 = aB,
+    ab0 = ab,
     bA = 1.1,
     ba = 1.1,
     dA = 1.05,

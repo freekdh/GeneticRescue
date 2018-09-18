@@ -163,6 +163,7 @@ class BDPopulation{
 struct RcppOutput{
     RcppOutput(const unsigned int &ngen) : ngennr(ngen) {
         nofixcounter = 0;
+        fixcounter = 0;
         type[AB].resize(ngen);
         type[Ab].resize(ngen);
         type[aB].resize(ngen);
@@ -187,6 +188,10 @@ struct RcppOutput{
                     Fa[t](pop->getFa(t));
                 }
             }
+            distribution[AB].push_back(pop->returnTypes(AB,ngennr));
+            distribution[Ab].push_back(pop->returnTypes(AB,ngennr));
+            distribution[aB].push_back(pop->returnTypes(AB,ngennr));
+            distribution[ab].push_back(pop->returnTypes(AB,ngennr));
             mu_acc.unlock();
         }
     };
@@ -250,22 +255,23 @@ struct RcppOutput{
     std::atomic<int> nofixcounter, fixcounter;
     std::vector<accumulator_set<int, stats<tag::mean, tag::variance > > > type[4];
     std::vector<accumulator_set<double, stats<tag::mean, tag::variance > > > FA,Fa; // Genetic rescue AB/(AB+Ab) & aB/(aB+ab) (a will go extinct)
+    std::vector<int> distribution[4];
 };
 
 // [[Rcpp::export]]
-Rcpp::List BDSim(const int &nrep, const int &tend, Rcpp::List parslist, int setthreads = 0, bool progressbar = true){
+Rcpp::List BDSim(const int &nrep, const int &tend, const Rcpp::List &parslist, int setthreads = 0, bool progressbar = true){
     rnd::set_seed();
     Parameters pars(parslist);
     #ifdef _OPENMP
         const static int maxthreads = omp_get_max_threads();
         if(setthreads>0) omp_set_num_threads(setthreads);
         else omp_set_num_threads(maxthreads);
-        REprintf("Parallel activated : Number of threads=%i\n",omp_get_max_threads());   
+        //REprintf("Parallel activated : Number of threads=%i\n",omp_get_max_threads());   
     #endif
     Progress p(nrep, progressbar);
 
     /*collect data */    
-    RcppOutput OUTPUT(tend);
+    RcppOutput dataframe(tend);
     BDPopulation* arrayPopulation[nrep];
 
     #pragma omp parallel for /* threadprivate(OUTPUT)*/
@@ -273,11 +279,11 @@ Rcpp::List BDSim(const int &nrep, const int &tend, Rcpp::List parslist, int sett
         /* run simulations in parallel*/
         arrayPopulation[j] = new BDPopulation(pars);
         for(int i = 0; i < tend; ++i){arrayPopulation[j]->Iterate(pars);}
-        OUTPUT.pushback_protect(arrayPopulation[j]);
+        dataframe.pushback_protect(arrayPopulation[j]);
         delete arrayPopulation[j];
         p.increment();
     }
 
     /*rservoire*/
-    return OUTPUT.pushout();
+    return dataframe.pushout();
 }

@@ -8,6 +8,8 @@
 #include <Rcpp.h>
 #include "random.h"
 
+enum type {A,a};
+
 struct Parameters{
     Parameters(){};
     Parameters(int argc, char *argv[]);    
@@ -34,16 +36,23 @@ struct Parameters{
 
 struct DataBlock{
     public:
-    std::vector<int> popsize;
-    std::vector<std::vector<int>> allele0;
-    std::vector<std::vector<int>> allele1;
-    std::vector<int> major0;
-    std::vector<int> major1;
-    std::vector<double> introgressed0;
-    std::vector<double> introgressed1;
+        std::vector<int> Nind;
+        std::vector<int> NA;
+        std::vector<int> Na;
+        std::vector<double> FA;
+        std::vector<double> Fa;
 };
-
+/*
+class Individual{
+        public:
+        Individual(const type IndividualType);
+        Individual(Individual* parent1, Individual* parent2);
+        inline bool GetAllele(const int &locus);
+        inline int GenotypeCount();
+};
+*/
 struct SimData{  
+    public:
     SimData(){nofixcounter = 0;}
     void push_back_protect(DataBlock* &datablock){
         mu_datablock.lock();
@@ -51,12 +60,13 @@ struct SimData{
         mu_datablock.unlock();
     };
 
+    private:
     std::mutex mu_datablock;
     std::vector<DataBlock*> DataSet;
     std::atomic<int> nofixcounter;
 };
 
-bool RunSimulation(const Parameters &SimPars, SimData &SimulationData);
+bool DoSimulation(const Parameters &SimPars, SimData &SimulationData);
 
 
 Parameters::Parameters(int argc, char *argv[]){
@@ -122,6 +132,5 @@ void Parameters::Initialize(){
         m_global[i] = rnd::bernoulli(MUTATIONRATE);
     }
 }
-
 
 #endif

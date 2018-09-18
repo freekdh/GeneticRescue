@@ -5,19 +5,3 @@ BDSim <- function(nrep, tend, parslist, setthreads = 0L, progressbar = TRUE) {
     .Call('_pkgIntrogression_BDSim', PACKAGE = 'pkgIntrogression', nrep, tend, parslist, setthreads, progressbar)
 }
 
-IBSSim <- function(generations, parslist, setthreads = 0L, progressbar = TRUE) {
-    .Call('_pkgIntrogression_IBSSim', PACKAGE = 'pkgIntrogression', generations, parslist, setthreads, progressbar)
-}
-
-ShinyIBS_init <- function(generations, parslist) {
-    invisible(.Call('_pkgIntrogression_ShinyIBS_init', PACKAGE = 'pkgIntrogression', generations, parslist))
-}
-
-ShinyIBS_run <- function() {
-    invisible(.Call('_pkgIntrogression_ShinyIBS_run', PACKAGE = 'pkgIntrogression'))
-}
-
-ShinyIBS_write <- function() {
-    .Call('_pkgIntrogression_ShinyIBS_write', PACKAGE = 'pkgIntrogression')
-}
-

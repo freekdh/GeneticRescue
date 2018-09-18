@@ -1,52 +1,31 @@
-paramNames <- c("ngen", "nloci", "nrep", "ninit1" ,"ninit0", "k", "b", "dA", "da", "rec")
+paramNames <- c("AB0", "Ab0", "aB0", "ab0" ,"bA", "ba", "dA", "da", "r")
 
-plot_pop <- function(data) {
-  ggplot(data[[2]]) + 
-  geom_ribbon(aes(x=Generation, ymin=Popsize_avg-sqrt(Popsize_var), ymax=Popsize_avg+sqrt(Popsize_var)), fill = "grey", alpha = 0.5) +
-  geom_ribbon(aes(x=Generation, ymin=Major0_avg-sqrt(Major0_avg), ymax=Major0_avg+sqrt(Major0_avg)), fill = "red", alpha=0.8) +
-  geom_ribbon(aes(x=Generation, ymin=Major1_avg-sqrt(Major1_avg), ymax=Major1_avg+sqrt(Major1_avg)), fill = "green", alpha = 0.8) + 
-  xlab("Time") + ylab("# individuals") + 
-  geom_line(aes(x=Generation, y=Popsize_avg)) +
-  geom_line(aes(x=Generation, y=Major0_avg)) +
-  geom_line(aes(x=Generation, y=Major1_avg)) + 
-  theme_minimal() + 
-  theme(text=element_text(size=25))
+plot_pop <- function(BDtestdata) {
+  plot(BDtestdata$AB_mean ~ BDtestdata$t, ylim=c(0,100), type='l', col = "red", lwd = 5, ylab = "# Individuals", xlab = "Time", cex.axis = 1.5, cex.lab = 1.5)
+  lines(BDtestdata$Ab_mean ~ BDtestdata$t, col = "red", lty = "dashed", lwd = 5)
+  lines(BDtestdata$aB_mean ~ BDtestdata$t,  col = "blue", lwd = 5)
+  lines(BDtestdata$ab_mean ~ BDtestdata$t, lty = "dashed",col = "blue", lwd = 5)
+  legend(3600,100, legend=c("AB","Ab","aB","ab"), col = c("red","red","blue","blue"), lty = c("solid","dashed","solid","dashed"), lwd = 5, cex = 1.5)
 }
 
-plot_intro <- function(data) {
-  ggplot(data[[2]]) + 
-  geom_ribbon(aes(x=Generation, ymin=Introgressed0_avg-sqrt(Introgressed0_var), ymax=Introgressed0_avg+sqrt(Introgressed0_var)), fill = "red", alpha = 0.8) +
-  geom_ribbon(aes(x=Generation, ymin=Introgressed1_avg-sqrt(Introgressed1_var), ymax=Introgressed1_avg+sqrt(Introgressed1_var)), fill = "green", alpha = 0.8) +
-  geom_line(aes(x=Generation, y=Introgressed0_avg)) +
-  geom_line(aes(x=Generation, y=Introgressed1_avg)) +
-  theme_minimal() + 
-  xlab("Time") + 
-  ylab("Genetic rescue") + 
-  theme(text=element_text(size=25))
+plot_intro <- function(BDtestdata) {
+  plot(BDtestdata$FA_mean ~ BDtestdata$t, ylim=c(0,1), type='l', col = "red", lwd = 5, ylab = "# fraction B-alleles", xlab = "Time", cex.axis = 1.5, cex.lab = 1.5)
+  lines(BDtestdata$Fa_mean ~ BDtestdata$t, col = "blue", lwd = 5)
 }
 
 RunAllSimulation <- function(pars){
-  pkgIntrogression::ShinyIBS_init(pars)
-  
-  withProgress(message="Running simulations",value = 0,{
-    for(x in c(1:pars$nrep)){
-      incProgress(1/pars$nrep, detail = paste("Doing replicate", x))
-      pkgIntrogression::ShinyIBS_run()
-    }
-  })
-
-  pkgIntrogression::ShinyIBS_write()
+  pkgIntrogression::BDSim(100, 5000, pars, progressbar = FALSE)
 }
 
 function(input, output, session) {
     getParams <- function() {
-    input[["recalc"]]
+      input[["recalc"]]
 
-    params <- list()
-    length(params) <- 10
-    params <- lapply(paramNames, function(p) {input[[p]]})
-    names(params) <- paramNames
-    as.list(params)
+      params <- list()
+      length(params) <- 10
+      params <- lapply(paramNames, function(p) {input[[p]]})
+      names(params) <- paramNames
+      as.list(params)
   }
 
   navA <- eventReactive(input$recalc, RunAllSimulation(getParams())) 
@@ -60,7 +39,7 @@ function(input, output, session) {
   })
 
   output$write_fixation <- renderText({ 
-    paste("The fixation probability is: ", navA()$fixation)
+    paste("The fixation probability is: ", navA()$extinct)
   })
 
   #output$a_lociPlot <- renderPlotly({
