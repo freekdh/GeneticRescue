@@ -1,5 +1,6 @@
-library(ggplot2)
-library(pkgIntrogression)
+
+## app.R ##
+library(shinydashboard)
 
 renderInputs <- function() {
   wellPanel(
@@ -26,6 +27,7 @@ renderInputs <- function() {
   )
 }
 
+<<<<<<< HEAD
 fluidPage(theme="simplex.min.css",
   tags$style(type="text/css",
     "label {font-size: 12px;}",
@@ -51,5 +53,27 @@ fluidPage(theme="simplex.min.css",
   ),
   fluidRow(
     textOutput("write_fixation")
+=======
+ui <- dashboardPage(
+  dashboardHeader(title = "Introgression"),
+  dashboardSidebar(),
+  dashboardBody(
+    # Boxes need to be put in a row (or column)
+      fluidRow(
+          column(4,
+          renderInputs()
+          )
+          ,
+          column(4,
+          plotOutput("plot_popdynamic")
+          ),
+          column(4,
+          plotOutput("plot_introgression")
+          )
+        ),
+        fluidRow(
+          textOutput("write_fixation")
+        )
+>>>>>>> 48a400eb54892046e6d28b56d849f2f5f95e59fa
   )
 )
