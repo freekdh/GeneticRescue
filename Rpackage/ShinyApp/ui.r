@@ -1,5 +1,6 @@
-library(ggplot2)
-library(pkgIntrogression)
+
+## app.R ##
+library(shinydashboard)
 
 renderInputs <- function() {
   wellPanel(
@@ -26,30 +27,25 @@ renderInputs <- function() {
   )
 }
 
-fluidPage(theme="simplex.min.css",
-  tags$style(type="text/css",
-    "label {font-size: 12px;}",
-    ".recalculating {opacity: 1.0;}"
-  ),
-
-  # Application title
-  tags$h2("Genetic rescue due to introgressive hybridization"),
-  p("Simulations implemented in c++"),
-  hr(),
-
-  fluidRow(
-    column(4,
-    renderInputs()
-    )
-    ,
-    column(4,
-    plotOutput("plot_popdynamic")
-    ),
-    column(4,
-    plotOutput("plot_introgression")
-    )
-  ),
-  fluidRow(
-    textOutput("write_fixation")
+ui <- dashboardPage(
+  dashboardHeader(title = "Introgression"),
+  dashboardSidebar(),
+  dashboardBody(
+    # Boxes need to be put in a row (or column)
+      fluidRow(
+          column(4,
+          renderInputs()
+          )
+          ,
+          column(4,
+          plotOutput("plot_popdynamic")
+          ),
+          column(4,
+          plotOutput("plot_introgression")
+          )
+        ),
+        fluidRow(
+          textOutput("write_fixation")
+        )
   )
 )

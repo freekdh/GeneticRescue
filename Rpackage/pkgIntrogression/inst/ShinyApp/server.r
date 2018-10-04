@@ -5,7 +5,8 @@ plot_pop <- function(BDtestdata) {
   lines(BDtestdata$Ab_mean ~ BDtestdata$t, col = "red", lty = "dashed", lwd = 5)
   lines(BDtestdata$aB_mean ~ BDtestdata$t,  col = "blue", lwd = 5)
   lines(BDtestdata$ab_mean ~ BDtestdata$t, lty = "dashed",col = "blue", lwd = 5)
-  legend(3600,100, legend=c("AB","Ab","aB","ab"), col = c("red","red","blue","blue"), lty = c("solid","dashed","solid","dashed"), lwd = 5, cex = 1.5)
+  lines(BDtestdata$AB_mean+BDtestdata$Ab_mean+BDtestdata$aB_mean+BDtestdata$ab_mean ~ BDtestdata$t, lty="dotted", col = "black", lwd = 5)
+  legend(3600,100, legend=c("AB","Ab","aB","ab","Total"), col = c("red","red","blue","blue","black"), lty = c("solid","dashed","solid","dashed","dotted"), lwd = 5, cex = 1.5)
 }
 
 plot_intro <- function(BDtestdata) {
@@ -39,7 +40,7 @@ function(input, output, session) {
   })
 
   output$write_fixation <- renderText({ 
-    paste("The fixation probability is: ", navA()$extinct)
+    paste("The probability of extinction: ", navA()$extinct)
   })
 
   #output$a_lociPlot <- renderPlotly({
