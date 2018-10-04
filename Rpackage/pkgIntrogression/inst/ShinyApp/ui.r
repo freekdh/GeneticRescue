@@ -38,14 +38,14 @@ fluidPage(theme="simplex.min.css",
   hr(),
 
   fluidRow(
-    column(6,
+    column(4,
     renderInputs()
     )
     ,
-    column(3,
+    column(4,
     plotOutput("plot_popdynamic")
     ),
-    column(3,
+    column(4,
     plotOutput("plot_introgression")
     )
   ),

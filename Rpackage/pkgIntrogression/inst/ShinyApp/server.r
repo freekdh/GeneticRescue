@@ -39,7 +39,7 @@ function(input, output, session) {
   })
 
   output$write_fixation <- renderText({ 
-    paste("The fixation probability is: ", navA()$extinct)
+    paste("The probability of extinction: ", navA()$extinct)
   })
 
   #output$a_lociPlot <- renderPlotly({
